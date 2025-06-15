@@ -1,0 +1,59 @@
+# Python
+*.py[cod]
+*.pyo
+*.pyd
+__pycache__/
+*.log
+
+# Virtualenv
+env/
+venv/
+.venv/
+ENV/
+
+# Django
+*.sqlite3
+*.db
+*.db-journal
+media/
+staticfiles/
+*.pot
+*.mo
+*.pyc
+*.py~
+
+# Editor-/IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis
+dump.rdb
+
+# pip / tox
+pip-log.txt
+.tox/
+.cache/
+
+# dotenv
+.env
+
+# pytest
+.pytest_cache/
+htmlcov/
+
+# Coverage
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+
+# Git
+*.orig
