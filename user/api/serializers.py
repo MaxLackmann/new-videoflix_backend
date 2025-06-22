@@ -2,6 +2,7 @@ from rest_framework import serializers
 from user.models import CustomerUser, EmailVerificationToken
 from mailing.services.email_service import send_verification_email
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import check_password
 
 class RegisterSerializer(serializers.ModelSerializer):
     repeated_password = serializers.CharField(write_only=True)
@@ -32,9 +33,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 class VerifyEmailSerializer(serializers.Serializer):
     token = serializers.CharField()
 
-    def validate_token(self, value):
+    def validate(self, attrs):
+        token = attrs.get("token")
         try:
-            token_obj = EmailVerificationToken.objects.get(token=value)
+            token_obj = EmailVerificationToken.objects.get(token=token)
         except EmailVerificationToken.DoesNotExist:
             raise serializers.ValidationError("Ungültiger Token")
 
@@ -43,16 +45,37 @@ class VerifyEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError("Token ist abgelaufen")
 
         self.token_obj = token_obj
-        return value
+        return attrs
 
     def save(self):
         user = self.token_obj.user
         user.is_active = True
         user.save()
         self.token_obj.delete()
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        try:
+            user = CustomerUser.objects.get(email=data["email"])
+        except CustomerUser.DoesNotExist:
+            raise serializers.ValidationError("User or password is incorrect")
+
+        if not check_password(data["password"], user.password):
+            raise serializers.ValidationError("User or password is incorrect")
+
+        if not user.is_active:
+            raise serializers.ValidationError("E-Mail-Adresse wurde noch nicht bestätigt")
         
-        refresh = RefreshToken.for_user(user)
+        self.user = user
+        return data
+
+    def create(self, validated_data):
+        """Erzeugt die Tokens nach erfolgreicher Validierung."""
+        refresh = RefreshToken.for_user(self.user)
         return {
+            "access": str(refresh.access_token),
             "refresh": str(refresh),
-            "access": str(refresh.access_token)
         }
