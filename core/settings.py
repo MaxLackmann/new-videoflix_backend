@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'content.apps.ContentConfig',
     'user',
     'mailing',
+    'content'
     'corsheaders',
 ]
 

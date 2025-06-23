@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from user.models import CustomerUser, EmailVerificationToken
-from mailing.services.email_service import send_verification_email
+from user.models import CustomerUser, EmailVerificationToken, PasswordResetToken
+from mailing.services.email_service import send_verification_email, send_password_reset_email
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 
@@ -79,3 +79,45 @@ class LoginSerializer(serializers.Serializer):
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
+    
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value
+    
+    def save(self):
+        email = self.validated_data['email']
+        try:
+            user = CustomerUser.objects.get(email=email)
+        except CustomerUser.DoesNotExist:
+            return
+        token_obj = PasswordResetToken.objects.create(user=user)
+        send_password_reset_email(user.email, str(token_obj.token))
+
+class PasswordResetSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True)
+    repeated_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['repeated_password']:
+            raise serializers.ValidationError('Passwords do not match')
+
+        try:
+            token_obj = PasswordResetToken.objects.get(token=data['token'])
+        except PasswordResetToken.DoesNotExist:
+            raise serializers.ValidationError('Token ist ungültig oder abgelaufen.')
+
+        if token_obj.is_expired():
+            token_obj.delete()
+            raise serializers.ValidationError('Token ist abgelaufen.')
+
+        self.token_obj = token_obj
+        return data
+    
+    def save(self):
+        user = self.token_obj.user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        self.token_obj.delete()

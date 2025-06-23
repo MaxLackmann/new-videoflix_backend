@@ -38,7 +38,7 @@ def send_password_reset_email(email: str, token: str) -> None:
     from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
 
-    link = f'http://localhost:4200/reset?token={token}'
+    link = f'http://localhost:4200/reset-password?token={token}'
 
     plain_message = (
         'Hallo!\n\n'
