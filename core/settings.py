@@ -29,13 +29,13 @@ SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-()ky)4)%6s%52w2mt-r!$f66+=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",")
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
-# Application definition
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:5500,http://127.0.0.1:5500").split(",")
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:4200,http://127.0.0.1:4200"
+    "http://localhost:5500,http://127.0.0.1:5500"
 ).split(",")
+CORS_ALLOW_CREDENTIALS = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'content.apps.ContentConfig',
     'user',
     'mailing',
-    'content'
     'corsheaders',
 ]
 
@@ -185,4 +184,3 @@ SIMPLE_JWT = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

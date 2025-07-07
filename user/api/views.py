@@ -1,55 +1,128 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from user.api.serializers import RegisterSerializer, VerifyEmailSerializer \
-    ,LoginSerializer, PasswordResetRequestSerializer, PasswordResetSerializer
+from user.api.serializers import RegisterSerializer, LoginSerializer,\
+    PasswordResetSerializer, PasswordChangeSerializer
 from rest_framework.permissions import AllowAny
+from user.models import CustomerUser
+from django.utils.http import urlsafe_base64_decode
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({"detail": sum(serializer.errors.values(), [])}, status=status.HTTP_400_BAD_REQUEST)
+            user, token = serializer.save()
+            return Response({
+                "user": {"id": user.id, "email": user.email},
+                "token": token,
+            }, status=status.HTTP_201_CREATED)
+        return Response(
+            {"detail": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    
-class VerifyEmailView(APIView):
+class ActivateView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        print("VerifyEmailView POST body:", request.data)
-        serializer = VerifyEmailSerializer(data=request.data)
-        if serializer.is_valid():
-            tokens = serializer.save()
-            return Response(tokens, status=status.HTTP_200_OK)
-        return Response({"detail": sum(serializer.errors.values(), [])}, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = CustomerUser.objects.get(pk=uid)
+            access_token = AccessToken(token)
 
-    
+            if str(user.pk) != str(access_token['user_id']):
+                raise Exception
+
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+
+                return Response({"detail": "Account successfully activated"}, status=status.HTTP_200_OK)
+            return Response({"detail": "Account already activated."}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({"detail": "Account activation failed."}, status=status.HTTP_400_BAD_REQUEST)
+        
 class LoginView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            tokens = serializer.save()
-            return Response(tokens, status=status.HTTP_200_OK)
-        return Response({"detail": sum(serializer.errors.values(), [])}, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(
+                {"detail": "Please check your credentials and try again."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        user = serializer.validated_data['user']
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {"detail": "Login successful", "user": {"id": user.id, "username": user.username}},
+            status=status.HTTP_200_OK
+        )
+        response.set_cookie('access_token', str(refresh.access_token), httponly=True)
+        response.set_cookie('refresh_token', str(refresh), httponly=True)
+        return response
 
-class PasswordResetRequestView(APIView):
+class LogoutView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        serializer = PasswordResetRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"detail": "Password reset email sent if user exists"}, status=status.HTTP_200_OK)
-        return Response({"detail": sum(serializer.errors.values(), [])}, status=status.HTTP_400_BAD_REQUEST)
+        token = request.COOKIES.get('refresh_token')
+        if not token:
+            return Response({"detail": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            RefreshToken(token).blacklist()
+        except Exception:
+            pass
+        resp = Response({"detail": "Logout successful"}, status=status.HTTP_200_OK)
+        resp.delete_cookie('access_token')
+        resp.delete_cookie('refresh_token')
+        return resp
+    
+class TokenRefreshView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        token = request.COOKIES.get('refresh_token')
+        if not token:
+            return Response({"detail": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            new_access_token = RefreshToken(token).access_token
+        except TokenError:
+            return Response({"detail": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+        response = Response({"detail": "Token refreshed", "access" : str(new_access_token)}, status=status.HTTP_200_OK)
+        response.set_cookie('access_token', str(new_access_token), httponly=True)
+        return response
     
 class PasswordResetView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"detail": "Password reset successful"}, status=status.HTTP_200_OK)
-        return Response({"detail": sum(serializer.errors.values(), [])}, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response({"detail": "Invalid email address"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response({"detail": "An email has been sent to reset your password."}, status=status.HTTP_200_OK)
+    
+class PasswordConfirmView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, uidb64, token):
+        serializer = PasswordChangeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"detail": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            uid  = urlsafe_base64_decode(uidb64).decode()
+            user = CustomerUser.objects.get(pk=uid)
+        except Exception:
+            return Response(
+                {"detail": "Invalid token or user"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+
+        return Response(
+            {"detail": "Your Password has been successfully reset."},
+            status=status.HTTP_200_OK
+        )

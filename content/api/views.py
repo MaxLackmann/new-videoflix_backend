@@ -7,11 +7,11 @@ from content.api.serializers import VideoSerializer
 class VideoListView(APIView):
     def get(self, request):
         videos = Video.objects.all()
-        serializer = VideoSerializer(videos, many=True)
+        serializer = VideoSerializer(videos, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class VideoDetailView(APIView):
     def get(self, request, pk):
         video = Video.objects.get(pk=pk)
-        serializer = VideoSerializer(video)
+        serializer = VideoSerializer(video, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
