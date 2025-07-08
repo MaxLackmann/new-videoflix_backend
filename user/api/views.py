@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from user.models import CustomerUser
 from django.utils.http import urlsafe_base64_decode
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
+from django.middleware.csrf import get_token
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -21,7 +22,7 @@ class RegisterView(APIView):
                 "token": token,
             }, status=status.HTTP_201_CREATED)
         return Response(
-            {"detail": serializer.errors},
+            {"detail": "Invalid email or password"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -52,7 +53,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
-                {"detail": serializer.errors},
+                {"detail": "Invalid email or password"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         user = serializer.validated_data['user']
@@ -61,8 +62,10 @@ class LoginView(APIView):
             {"detail": "Login successful", "user": {"id": user.id, "username": user.username}},
             status=status.HTTP_200_OK
         )
-        response.set_cookie('access_token', str(refresh.access_token), httponly=False, secure=True, samesite='None')
-        response.set_cookie('refresh_token', str(refresh), httponly=False, secure=True, samesite='None')
+        response.set_cookie('access_token', str(refresh.access_token), httponly=True, secure=True, samesite='None')
+        response.set_cookie('refresh_token', str(refresh), httponly=True, secure=True, samesite='None')
+        csrf_token = get_token(request)
+        response.set_cookie('csrftoken', csrf_token, httponly=False, secure=True, samesite='None')
         return response
 
 class LogoutView(APIView):
@@ -77,8 +80,8 @@ class LogoutView(APIView):
         except Exception:
             pass
         response = Response({"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."}, status=status.HTTP_200_OK)
-        response.set_cookie('access_token', '', max_age=0, httponly=False, secure=True, samesite='None')
-        response.set_cookie('refresh_token', '', max_age=0, httponly=False, secure=True, samesite='None')
+        response.set_cookie('access_token', '', max_age=0, httponly=True, secure=True, samesite='None')
+        response.set_cookie('refresh_token', '', max_age=0, httponly=True, secure=True, samesite='None')
         return response
     
 class TokenRefreshView(APIView):

@@ -12,11 +12,16 @@ def test_logout_user(client):
     refreshtoken = RefreshToken.for_user(user)
     access_token = str(refreshtoken.access_token)
 
+    csrf_token = 'testcsrftoken'
     client.cookies['access_token'] = access_token
     client.cookies['refresh_token'] = str(refreshtoken)
+    client.cookies['csrftoken'] = csrf_token
 
     url = reverse('logout')
-    response = client.post(url)
+    response = client.post(
+        url,
+        HTTP_X_CSRFTOKEN=csrf_token,
+    )
 
     assert response.status_code == 200
     assert 'access_token' in response.cookies

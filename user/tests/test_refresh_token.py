@@ -19,7 +19,7 @@ def test_refresh_token(client):
     assert response.data["detail"] == "Token refreshed"
     assert 'access' in response.data
     assert 'access_token' in response.cookies
-    assert response.cookies['access_token']['httponly']
+    assert response.cookies['access_token']['httponly'] is True
 
 @pytest.mark.django_db
 def test_no_refresh_token(client):

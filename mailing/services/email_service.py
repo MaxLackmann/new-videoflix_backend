@@ -8,7 +8,7 @@ def send_verification_email(email: str, uid: str, token: str) -> None:
     from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
 
-    link = f'http://localhost:8000/api/activate/{uid}/{token}'
+    link = f'http://localhost:5500/pages/auth/activate.html?uid={uid}&token={token}'
 
     plain_message = (
         'Hallo!\n\n'
@@ -29,12 +29,12 @@ def send_verification_email(email: str, uid: str, token: str) -> None:
         fail_silently=False,
     )
 
-def send_password_reset_email(email: str, token: str) -> None:
+def send_password_reset_email(email: str, uid: str, token: str) -> None:
     subject = 'Setze dein Passwort zurück'
     from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
 
-    link = f'http://localhost:8000/verify-email?token={token}'
+    link = f'http://localhost:5500/pages/auth/confirm_password.html?uid={uid}&token={token}'
 
     plain_message = (
         'Hallo!\n\n'
@@ -45,7 +45,7 @@ def send_password_reset_email(email: str, token: str) -> None:
         'Danke,\nDein Videoflix-Team'
     )
 
-    html_message = render_to_string('reset_password.html', {'token': token, 'link': link})
+    html_message = render_to_string('reset_password.html', {'link': link})
 
     send_mail(
         subject=subject,

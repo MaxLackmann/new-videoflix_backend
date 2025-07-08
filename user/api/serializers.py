@@ -62,9 +62,10 @@ class PasswordResetSerializer(serializers.Serializer):
         return value
     
     def save(self):
-        email = self.validated_data['email']
-        token = RefreshToken.for_user(CustomerUser.objects.get(email=email)).access_token
-        send_password_reset_email(email, token)
+        user = CustomerUser.objects.get(email=self.validated_data['email'])
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = str(RefreshToken.for_user(user).access_token)
+        send_password_reset_email(user.email, uid, token)
 
 class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)
