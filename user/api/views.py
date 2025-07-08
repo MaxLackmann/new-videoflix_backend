@@ -41,7 +41,7 @@ class ActivateView(APIView):
                 user.is_active = True
                 user.save()
 
-                return Response({"detail": "Account successfully activated"}, status=status.HTTP_200_OK)
+                return Response({"detail": "Account successfully activated."}, status=status.HTTP_200_OK)
             return Response({"detail": "Account already activated."}, status=status.HTTP_200_OK)
         except Exception:
             return Response({"detail": "Account activation failed."}, status=status.HTTP_400_BAD_REQUEST)
@@ -52,7 +52,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
-                {"detail": "Please check your credentials and try again."},
+                {"detail": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST
             )
         user = serializer.validated_data['user']
@@ -61,13 +61,14 @@ class LoginView(APIView):
             {"detail": "Login successful", "user": {"id": user.id, "username": user.username}},
             status=status.HTTP_200_OK
         )
-        response.set_cookie('access_token', str(refresh.access_token), httponly=True)
-        response.set_cookie('refresh_token', str(refresh), httponly=True)
+        response.set_cookie('access_token', str(refresh.access_token), httponly=False, secure=True, samesite='None')
+        response.set_cookie('refresh_token', str(refresh), httponly=False, secure=True, samesite='None')
         return response
 
 class LogoutView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
+        print(f"LogoutView Cookies: {request.COOKIES}")
         token = request.COOKIES.get('refresh_token')
         if not token:
             return Response({"detail": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
@@ -75,10 +76,10 @@ class LogoutView(APIView):
             RefreshToken(token).blacklist()
         except Exception:
             pass
-        resp = Response({"detail": "Logout successful"}, status=status.HTTP_200_OK)
-        resp.delete_cookie('access_token')
-        resp.delete_cookie('refresh_token')
-        return resp
+        response = Response({"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."}, status=status.HTTP_200_OK)
+        response.set_cookie('access_token', '', max_age=0, httponly=False, secure=True, samesite='None')
+        response.set_cookie('refresh_token', '', max_age=0, httponly=False, secure=True, samesite='None')
+        return response
     
 class TokenRefreshView(APIView):
     permission_classes = [AllowAny]

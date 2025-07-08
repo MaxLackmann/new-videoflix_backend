@@ -36,6 +36,10 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     "http://localhost:5500,http://127.0.0.1:5500"
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SAMESITE = None
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',

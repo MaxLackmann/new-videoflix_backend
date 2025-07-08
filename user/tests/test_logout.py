@@ -23,7 +23,7 @@ def test_logout_user(client):
     assert response.cookies['access_token'].value == ''
     assert 'refresh_token' in response.cookies
     assert response.cookies['refresh_token'].value == ''
-    assert response.data["detail"] == "Logout successful"
+    assert response.data["detail"] == "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."
 
 @pytest.mark.django_db
 def test_logout_user_no_refresh_token(client):

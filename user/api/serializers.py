@@ -30,6 +30,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('privacy_policy')
         validated_data['username'] = validated_data['email']
         user = CustomerUser.objects.create(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
         refresh = RefreshToken.for_user(user)
         activation_token = str(refresh.access_token)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -44,9 +46,9 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = CustomerUser.objects.get(email=data['email'])
         except CustomerUser.DoesNotExist:
-            raise serializers.ValidationError("Incorrect email or password")
+            raise serializers.ValidationError("user does not exist")
         if not user.check_password(data['password']):
-            raise serializers.ValidationError("Incorrect email or password")
+            raise serializers.ValidationError("password")
         if not user.is_active:
             raise serializers.ValidationError("Account is not activated")
         return {'user': user}
