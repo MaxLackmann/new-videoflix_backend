@@ -14,7 +14,6 @@ class RegisterView(APIView):
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        print(serializer)
         if serializer.is_valid():
             user, token = serializer.save()
             return Response({
@@ -95,7 +94,7 @@ class TokenRefreshView(APIView):
         except TokenError:
             return Response({"detail": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
         response = Response({"detail": "Token refreshed", "access" : str(new_access_token)}, status=status.HTTP_200_OK)
-        response.set_cookie('access_token', str(new_access_token), httponly=True)
+        response.set_cookie('access_token', str(new_access_token), httponly=True,  secure=True, samesite='None')
         return response
     
 class PasswordResetView(APIView):
