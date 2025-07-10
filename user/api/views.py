@@ -61,10 +61,10 @@ class LoginView(APIView):
             {"detail": "Login successful", "user": {"id": user.id, "username": user.username}},
             status=status.HTTP_200_OK
         )
-        response.set_cookie('access_token', str(refresh.access_token), httponly=True, secure=True, samesite='None')
-        response.set_cookie('refresh_token', str(refresh), httponly=True, secure=True, samesite='None')
+        response.set_cookie('access_token', str(refresh.access_token), httponly=True, secure=True, samesite='None', path='/')
+        response.set_cookie('refresh_token', str(refresh), httponly=True, secure=True, samesite='None', path='/')
         csrf_token = get_token(request)
-        response.set_cookie('csrftoken', csrf_token, httponly=False, secure=True, samesite='None')
+        response.set_cookie('csrftoken', csrf_token, httponly=False, secure=True, samesite='None', path='/')
         return response
 
 class LogoutView(APIView):
@@ -79,8 +79,8 @@ class LogoutView(APIView):
         except Exception:
             pass
         response = Response({"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."}, status=status.HTTP_200_OK)
-        response.set_cookie('access_token', '', max_age=0, httponly=True, secure=True, samesite='None')
-        response.set_cookie('refresh_token', '', max_age=0, httponly=True, secure=True, samesite='None')
+        response.set_cookie('access_token', '', max_age=0, httponly=True, secure=True, samesite='None', path='/')
+        response.set_cookie('refresh_token', '', max_age=0, httponly=True, secure=True, samesite='None', path='/')
         return response
     
 class TokenRefreshView(APIView):
@@ -94,7 +94,7 @@ class TokenRefreshView(APIView):
         except TokenError:
             return Response({"detail": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
         response = Response({"detail": "Token refreshed", "access" : str(new_access_token)}, status=status.HTTP_200_OK)
-        response.set_cookie('access_token', str(new_access_token), httponly=True,  secure=True, samesite='None')
+        response.set_cookie('access_token', str(new_access_token), httponly=True,  secure=True, samesite='None', path='/')
         return response
     
 class PasswordResetView(APIView):
