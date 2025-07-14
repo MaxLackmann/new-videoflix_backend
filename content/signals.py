@@ -16,9 +16,9 @@ def video_post_save(sender, instance, created, **kwargs):
     if created and instance.video_file:
         print('new Video is created')
         source = instance.video_file.path
-        convert_480p.delay(source, instance.pk)
-        convert_720p.delay(source, instance.pk)
-        convert_1080p.delay(source, instance.pk)
+        convert_480p.delay(source)
+        convert_720p.delay(source)
+        convert_1080p.delay(source)
 
 
 @receiver(post_delete, sender=Video)

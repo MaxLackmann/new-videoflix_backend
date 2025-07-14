@@ -21,20 +21,20 @@ def test_video_manifest_success(settings):
     with open(video_path, "w") as f:
         f.write("dummy video content")
 
-    hls_dir = os.path.join(video_dir, "Movie_480p")
+    category = "Test"
+    rel_video_path = os.path.relpath(video_path, media_root)
+    video = Video.objects.create(
+        title="Movie",
+        description="Testmovie",
+        category=category,
+        video_file=rel_video_path
+    )
+    basename, _ = os.path.splitext(os.path.basename(video_path))
+    hls_dir = os.path.join(video_dir, category.lower(), f"{basename}_480p")
     os.makedirs(hls_dir, exist_ok=True)
     manifest_path = os.path.join(hls_dir, "index.m3u8")
     with open(manifest_path, "w") as f:
         f.write("#EXTM3U\n#EXT-X-VERSION:3\n")
-
-    rel_video_path = os.path.relpath(video_path, media_root)
-
-    video = Video.objects.create(
-        title="Movie",
-        description="Testmovie",
-        category="Test",
-        video_file=rel_video_path
-    )
 
     client = APIClient()
     client.cookies['access_token'] = access_token
@@ -46,6 +46,7 @@ def test_video_manifest_success(settings):
     assert response["Content-Type"] == "application/vnd.apple.mpegurl"
     manifest_body = b''.join(response.streaming_content)
     assert manifest_body.startswith(b"#EXTM3U")
+
 
 @pytest.mark.django_db
 def test_video_manifest_video_not_found(settings):
@@ -64,9 +65,6 @@ def test_video_manifest_video_not_found(settings):
 
 @pytest.mark.django_db
 def test_video_manifest_manifest_not_found(settings):
-    """
-    Existiert das Manifest nicht, aber das Video schon, wird 404 zurückgegeben.
-    """
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )
@@ -91,7 +89,8 @@ def test_video_manifest_manifest_not_found(settings):
     client = APIClient()
     client.cookies['access_token'] = access_token
 
-    hls_dir = os.path.join(video_dir, "Movie_480p")
+    # Korrekt: Kategorie-Unterordner und klein
+    hls_dir = os.path.join(video_dir, video.category.lower(), "Movie_480p")
     os.makedirs(hls_dir, exist_ok=True)
 
     manifest_path = os.path.join(hls_dir, "index.m3u8")

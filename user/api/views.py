@@ -70,7 +70,6 @@ class LoginView(APIView):
 class LogoutView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        print(f"LogoutView Cookies: {request.COOKIES}")
         token = request.COOKIES.get('refresh_token')
         if not token:
             return Response({"detail": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
