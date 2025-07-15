@@ -13,7 +13,7 @@ def convert_480p(source: str) -> None:
         "-c:v", "libx264", "-crf", "23",
         "-c:a", "aac", "-strict", "-2",
         "-f", "hls",
-        "-hls_time", "4",
+        "-hls_time", "6",
         "-hls_playlist_type", "vod",
         "-hls_segment_filename", os.path.join(outdir, "segment_%03d.ts"),
         target
@@ -31,7 +31,7 @@ def convert_720p(source: str) -> None:
         "-c:v", "libx264", "-crf", "23",
         "-c:a", "aac", "-strict", "-2",
         "-f", "hls",
-        "-hls_time", "4",
+        "-hls_time", "6",
         "-hls_playlist_type", "vod",
         "-hls_segment_filename", os.path.join(outdir, "segment_%03d.ts"),
         target
@@ -49,7 +49,7 @@ def convert_1080p(source: str) -> None:
         "-c:v", "libx264", "-crf", "23",
         "-c:a", "aac", "-strict", "-2",
         "-f", "hls",
-        "-hls_time", "4",
+        "-hls_time", "6",
         "-hls_playlist_type", "vod",
         "-hls_segment_filename", os.path.join(outdir, "segment_%03d.ts"),
         target
