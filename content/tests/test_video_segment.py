@@ -8,6 +8,15 @@ import os
 
 @pytest.mark.django_db
 def test_video_segment_success(settings):
+    """
+    Test that a video segment is successfully retrieved with a 200 status code.
+    This test creates a user and a dummy video file, along with a segment file.
+    It then authenticates the user and makes a GET request to retrieve the video
+    segment. The response is verified to have a 200 status code, the correct 
+    content type for video segments, and the body starts with the expected 
+    binary data.
+    """
+
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )
@@ -52,8 +61,10 @@ def test_video_segment_success(settings):
 @pytest.mark.django_db
 def test_video_segment_video_not_found(settings):
     """
-    Existiert das Video nicht, wird 404 geliefert.
+    Test that a 404 status code is returned when the video segment is not found
+    because the video with the given id does not exist.
     """
+    
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )

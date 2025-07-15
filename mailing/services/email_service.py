@@ -4,6 +4,15 @@ from django.conf import settings
 
 
 def send_verification_email(email: str, uid: str, token: str) -> None:
+    """Sends an email to the given address with a link to verify it.
+    The email contains a link with a uid and token that can be used to
+    verify the email address. The link is valid for 24 hours.
+    Args:
+        email (str): The email address to send the email to.
+        uid (str): The uid of the user to verify.
+        token (str): The token to verify the user.
+    """
+    
     subject = 'Bestätige deine E-Mail-Adresse'
     from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
@@ -30,6 +39,15 @@ def send_verification_email(email: str, uid: str, token: str) -> None:
     )
 
 def send_password_reset_email(email: str, uid: str, token: str) -> None:
+    """Sends an email to the given address with a link to reset the password.
+    The email contains a link with a uid and token that can be used to
+    reset the password. The link is valid for 24 hours.
+    Args:
+        email (str): The email address to send the email to.
+        uid (str): The uid of the user to reset the password.
+        token (str): The token to reset the password.
+    """
+    
     subject = 'Setze dein Passwort zurück'
     from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]

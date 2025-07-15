@@ -8,6 +8,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 @pytest.mark.django_db
 def test_video_list_authenticated_returns_all_videos(tmpdir):
+    """
+    Given an authenticated user and two videos in the database, when the user requests a list of all videos, then a list of all videos is returned.
+    """
+
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )
@@ -39,6 +43,10 @@ def test_video_list_authenticated_returns_all_videos(tmpdir):
 
 @pytest.mark.django_db
 def test_video_list_unauthenticated_returns_401():
+    """
+    Given an unauthenticated user, when the user requests a list of all videos, then a 401 Unauthorized status code is returned.
+    """
+
     client = APIClient()
     url = reverse("video-list")
     response = client.get(url)
@@ -46,6 +54,10 @@ def test_video_list_unauthenticated_returns_401():
 
 @pytest.mark.django_db
 def test_video_list_authenticated_empty_list():
+    """
+    Given an authenticated user with no videos in the database, when the user requests a list of all videos, then an empty list is returned.
+    """
+    
     user = CustomerUser.objects.create_user(
         username="user2@test.com", email="user2@test.com", password="password123", is_active=True
     )

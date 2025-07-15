@@ -1,14 +1,23 @@
-# apps/mailing/tests/test_email_service.py
-
 import pytest
 from django.core import mail
 from django.conf import settings
 import re
-# Importiere Servicefunktion:
 from mailing.services.email_service import send_verification_email
 
 @pytest.mark.django_db
 def test_send_verification_email_renders_and_sends(tmp_path, settings):
+
+    """
+    Tests that the send_verification_email function renders and sends an email
+    with the correct subject and body.
+    The test sends an email with a dummy email address, uid, and token. It verifies
+    that only one email is sent, that the email is sent to the correct address, and
+    that the subject contains "E-Mail-Adresse". It also checks that the email body
+    and HTML alternative contain the uid and token, and that the body contains a link
+    to activate the account using the uid and token.
+    :param tmp_path: A temporary directory unique to each test invocation.
+    :param settings: The Django settings module.
+    """
 
     email = "user@test.com"
     uid = "dummyuid"

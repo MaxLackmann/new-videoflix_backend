@@ -5,4 +5,10 @@ class ContentConfig(AppConfig):
     name = 'content'
 
     def ready(self):
+        """
+        Override the ready() method to import the signals module, which will
+        register the signals with the corresponding receivers. This is a
+        one-time operation that happens when the app is ready.
+        """
+        
         import content.signals

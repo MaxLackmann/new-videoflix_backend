@@ -5,6 +5,18 @@ from mailing.services.email_service import send_password_reset_email
 
 @pytest.mark.django_db
 def test_send_password_reset_email_renders_and_sends(tmp_path, settings):
+    """
+    Tests that the send_password_reset_email function renders and sends an email
+    with the correct subject and body.
+    The test sends an email with a dummy email address, uid and token. The test
+    checks that only one email is sent, that the email is sent to the correct
+    address, that the subject contains either "Passwort", "Reset" or "zurücksetzen",
+    that the body contains the uid and token, and that the body contains a link
+    to reset the password.
+    :param tmp_path: A temporary directory unique to each test invocation.
+    :param settings: The Django settings module.
+    """
+
     email = "reset@test.com"
     uid = "dummyuid"
     token = "dummytoken"

@@ -8,6 +8,15 @@ import os
 
 @pytest.mark.django_db
 def test_video_manifest_success(settings):
+    """
+    Test that a video manifest is successfully retrieved with a 200 status code.
+    This test creates a user and a dummy video file, along with an HLS manifest
+    file. It then authenticates the user and makes a GET request to retrieve 
+    the video manifest. The response is verified to have a 200 status code, 
+    the correct content type for HLS manifests, and the body starts with the 
+    expected '#EXTM3U' header.
+    """
+
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )
@@ -50,6 +59,11 @@ def test_video_manifest_success(settings):
 
 @pytest.mark.django_db
 def test_video_manifest_video_not_found(settings):
+    """
+    Test that a 404 status code is returned when the video manifest is not found
+    because the video with the given id does not exist.
+    """
+    
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )
@@ -65,6 +79,12 @@ def test_video_manifest_video_not_found(settings):
 
 @pytest.mark.django_db
 def test_video_manifest_manifest_not_found(settings):
+    """
+    Test that a 404 status code is returned when the video manifest is not found
+    because the manifest file does not exist, even though the video with the given
+    id does exist.
+    """
+
     user = CustomerUser.objects.create_user(
         username="user@test.com", email="user@test.com", password="testtest", is_active=True
     )
@@ -89,7 +109,6 @@ def test_video_manifest_manifest_not_found(settings):
     client = APIClient()
     client.cookies['access_token'] = access_token
 
-    # Korrekt: Kategorie-Unterordner und klein
     hls_dir = os.path.join(video_dir, video.category.lower(), "Movie_480p")
     os.makedirs(hls_dir, exist_ok=True)
 

@@ -4,6 +4,12 @@ import subprocess
 
 @django_rq.job
 def convert_480p(source: str) -> None:
+    """
+    Encode a video to 480p resolution using FFmpeg and H.264 video and AAC audio.
+    :param source: Path to the video file to be encoded.
+    :return: None
+    """
+
     outdir = source.replace('.mp4', '_480p')
     os.makedirs(outdir, exist_ok=True)
     target = os.path.join(outdir, "index.m3u8")
@@ -22,6 +28,11 @@ def convert_480p(source: str) -> None:
 
 @django_rq.job
 def convert_720p(source: str) -> None:
+    """
+    Encode a video to 720p resolution using FFmpeg and H.264 video and AAC audio.
+    :param source: Path to the video file to be encoded.
+    :return: None
+    """
     outdir = source.replace('.mp4', '_720p')
     os.makedirs(outdir, exist_ok=True)
     target = os.path.join(outdir, "index.m3u8")
@@ -40,6 +51,12 @@ def convert_720p(source: str) -> None:
 
 @django_rq.job
 def convert_1080p(source: str) -> None:
+    """
+    Encode a video to 1080p resolution using FFmpeg and H.264 video and AAC audio.
+    :param source: Path to the video file to be encoded.
+    :return: None
+    """
+    
     outdir = source.replace('.mp4', '_1080p')
     os.makedirs(outdir, exist_ok=True)
     target = os.path.join(outdir, "index.m3u8")

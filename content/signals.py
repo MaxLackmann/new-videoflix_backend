@@ -12,6 +12,12 @@ import shutil
 
 @receiver(post_save, sender=Video)
 def video_post_save(sender, instance, created, **kwargs):
+    """
+    After a Video object is saved, check if it is a new instance.
+    If yes, and if the Video object has a video_file, start the transcoding
+    process for all resolutions (480p, 720p, 1080p) in the background.
+    """
+
     print('Video is saved')
     if created and instance.video_file:
         print('new Video is created')
@@ -23,12 +29,16 @@ def video_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
-    print('Video is deleted')
+    """
+    Automatically delete the video file from filesystem
+    when the corresponding `Video` object is deleted.
+    Also deletes the HLS directories for all resolutions.
+    """
 
+    print('Video is deleted')
     if not instance.video_file:
         return
 
-    # Original .mp4 entfernen
     base_path = instance.video_file.path
     if os.path.isfile(base_path):
         os.remove(base_path)
@@ -36,7 +46,6 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     else:
         print(f"Nicht gefunden: {base_path}")
 
-    # HLS-Verzeichnisse für alle Auflösungen entfernen
     hls_base = base_path.rsplit(".mp4", 1)[0]
     for res in ["480p", "720p", "1080p"]:
         dir_path = f"{hls_base}_{res}"
